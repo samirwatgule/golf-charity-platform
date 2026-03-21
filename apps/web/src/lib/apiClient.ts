@@ -1,7 +1,8 @@
 import axios from "axios";
 
+const rawUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "";
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL
+  baseURL: rawUrl.endsWith("/api/v1") ? rawUrl : `${rawUrl}/api/v1`
 });
 
 const TOKEN_KEY = "impact_draw_access_token";
