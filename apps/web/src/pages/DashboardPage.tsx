@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { apiClient } from "../lib/apiClient";
+import {
+  MOCK_SCORES,
+  MOCK_SUBSCRIPTION,
+  MOCK_CURRENT_DRAW,
+  MOCK_WINNINGS,
+  MOCK_CHARITIES
+} from "../lib/mockData";
 
 /* ── Score ball component ── */
 function ScoreBall({ score, isMatch }: { score: number; isMatch: boolean }) {
@@ -59,10 +66,26 @@ export function DashboardPage() {
   const [showScoreSuccess, setShowScoreSuccess] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
 
+  const isDemoUser = user?.id.startsWith("demo-");
+
   useEffect(() => {
     if (!isAuthenticated) return;
-    let isMounted = true;
+    
+    // HYBRID LOGIC: If demo user, load visually rich Mock Data instantly
+    if (isDemoUser) {
+      setScores(MOCK_SCORES);
+      setSubscription(MOCK_SUBSCRIPTION);
+      setCurrentDraw(MOCK_CURRENT_DRAW.draw);
+      setMatchCount(MOCK_CURRENT_DRAW.myMatchedCount);
+      setWinnings(MOCK_WINNINGS);
+      setCharities(MOCK_CHARITIES);
+      setSelectedCharity(MOCK_CHARITIES[0].id);
+      setIsLoading(false);
+      return;
+    }
 
+    // REAL USERS: Load strictly from the active Neon DB backend
+    let isMounted = true;
     async function fetchData() {
       try {
         const [scRes, subRes, drawRes, winRes, charRes] = await Promise.all([
@@ -93,9 +116,14 @@ export function DashboardPage() {
     fetchData();
 
     return () => { isMounted = false; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isDemoUser]);
 
   const handleSubscribe = async () => {
+    if (isDemoUser) {
+      alert("In Demo Mode, payments are bypassed to show UI. Sign up for a real account to test the Stripe Gateway!");
+      return;
+    }
+
     setIsSubscribing(true);
     try {
       const res = await apiClient.post("/subscriptions/checkout-session", { priceId: "YOUR_PRICE_ID_HERE" });
@@ -113,6 +141,18 @@ export function DashboardPage() {
     const val = Number(newScore);
     if (isNaN(val) || val < 1 || val > 45 || !newDate) return;
     
+    if (isDemoUser) {
+      const updated = [
+        { id: `s-new-${Date.now()}`, score: val, played_at: newDate },
+        ...scores
+      ].slice(0, 5);
+      setScores(updated);
+      setNewScore("");
+      setShowScoreSuccess(true);
+      setTimeout(() => setShowScoreSuccess(false), 3000);
+      return;
+    }
+
     try {
       // Send to backend API
       const res = await apiClient.post("/scores", { score: val, date: newDate });
@@ -165,7 +205,9 @@ export function DashboardPage() {
         <h1 className="text-3xl font-black text-brand-deep">
           Welcome back, <span className="text-gradient">{user?.fullName || "Player"}</span>
         </h1>
-        <p className="text-brand-slate mt-1">Here's your live golf impact overview</p>
+        <p className="text-brand-slate mt-1">
+          {isDemoUser ? "Here's your Demo Dashboard (Mock Data)" : "Here's your live golf impact overview"}
+        </p>
       </div>
 
       {/* ── STAT CARDS ── */}
@@ -272,7 +314,7 @@ export function DashboardPage() {
               <button 
                 onClick={addScore} 
                 className="btn-primary !rounded-xl whitespace-nowrap"
-                disabled={subStatus !== 'ACTIVE' && subStatus !== 'TRIALING'}
+                disabled={!isDemoUser && subStatus !== 'ACTIVE' && subStatus !== 'TRIALING'}
               >
                 Add Score
               </button>
@@ -283,7 +325,7 @@ export function DashboardPage() {
                 ✅ Score added securely to Database!
               </div>
             )}
-            {subStatus !== "ACTIVE" && subStatus !== "TRIALING" && (
+            {!isDemoUser && subStatus !== "ACTIVE" && subStatus !== "TRIALING" && (
               <div className="mb-4 rounded-xl bg-amber-50 px-4 py-2.5 text-sm text-amber-700 animate-fade-in">
                 ⚠️ You must subscribe before storing official draw scores.
               </div>
@@ -292,7 +334,7 @@ export function DashboardPage() {
             {/* Score balls */}
             <div className="flex flex-wrap gap-3 mb-3">
               {scores.map((s: any) => (
-                <div key={s.id} className="text-center">
+                <div key={s.id || s.score + Math.random()} className="text-center">
                   <ScoreBall score={s.score} isMatch={drawNumbers.includes(s.score)} />
                   <p className="text-[10px] text-brand-slate mt-1">{new Date(s.played_at).toLocaleDateString()}</p>
                 </div>
@@ -377,7 +419,7 @@ export function DashboardPage() {
                     <div>
                       <p className="text-sm font-semibold text-brand-deep">{w.month_key} — {w.matched_count} matches</p>
                       <p className="text-xs text-brand-slate mt-0.5">
-                        {new Date(w.created_at).toLocaleDateString()}
+                        {new Date((w.created_at || w.played_at || new Date().toISOString())).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
@@ -480,7 +522,9 @@ export function DashboardPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-brand-slate">Status</span>
-                <span className="font-medium text-brand-slate">Connected to Neon DB live</span>
+                <span className="font-medium text-brand-slate">
+                  {isDemoUser ? "Mock Demo Mode" : "Connected to Neon DB live"}
+                </span>
               </div>
             </div>
           </section>
