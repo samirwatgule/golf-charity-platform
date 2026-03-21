@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { MOCK_CHARITIES } from "../lib/mockData";
+import { apiClient } from "../lib/apiClient";
 
 type Mode = "login" | "register";
 
@@ -12,10 +12,23 @@ export function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [selectedCharity, setSelectedCharity] = useState(MOCK_CHARITIES[0].id);
+  
+  const [charities, setCharities] = useState<any[]>([]);
+  const [selectedCharity, setSelectedCharity] = useState("");
+  
   const [donationPercent, setDonationPercent] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    apiClient.get("/charities")
+      .then(res => {
+        const data = res.data.charities || [];
+        setCharities(data);
+        if (data.length > 0) setSelectedCharity(data[0].id);
+      })
+      .catch(err => console.error("Failed to fetch charities", err));
+  }, []);
 
   if (isAuthenticated) {
     navigate("/dashboard");
@@ -31,11 +44,12 @@ export function AuthPage() {
         await login(email, password);
       } else {
         if (!fullName.trim()) { setError("Full name is required"); setLoading(false); return; }
+        if (!selectedCharity) { setError("Please wait for charities to load"); setLoading(false); return; }
         await register({ email, password, fullName, defaultCharityId: selectedCharity, donationPercent });
       }
       navigate("/dashboard");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -59,6 +73,7 @@ export function AuthPage() {
         {/* Tab Toggle */}
         <div className="mb-6 flex rounded-2xl bg-brand-mist p-1">
           <button
+            type="button"
             className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all duration-300 ${
               mode === "login"
                 ? "bg-white text-brand-deep shadow-sm"
@@ -69,6 +84,7 @@ export function AuthPage() {
             Sign In
           </button>
           <button
+            type="button"
             className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition-all duration-300 ${
               mode === "register"
                 ? "bg-white text-brand-deep shadow-sm"
@@ -99,7 +115,7 @@ export function AuthPage() {
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-brand-deep">Email</label>
               <input
-                className="input-field"
+                 className="input-field"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -131,12 +147,17 @@ export function AuthPage() {
                     className="input-field"
                     value={selectedCharity}
                     onChange={(e) => setSelectedCharity(e.target.value)}
+                    required
                   >
-                    {MOCK_CHARITIES.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} — {c.category}
-                      </option>
-                    ))}
+                    {charities.length > 0 ? (
+                      charities.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} — {c.category}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Loading charities from live database...</option>
+                    )}
                   </select>
                 </div>
 
@@ -169,7 +190,7 @@ export function AuthPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === "register" && !selectedCharity)}
             className="btn-primary mt-6 w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading
