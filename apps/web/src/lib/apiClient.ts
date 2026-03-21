@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const rawUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, "") || "";
+// Add the ultimate fallback to the Render URL in case Vercel env vars fail
+const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+const rawUrl = (envUrl || "https://golf-charity-platform-l02d.onrender.com").replace(/\/+$/, "");
+
 export const apiClient = axios.create({
   baseURL: rawUrl.endsWith("/api/v1") ? rawUrl : `${rawUrl}/api/v1`
 });
