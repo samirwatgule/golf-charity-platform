@@ -65,7 +65,7 @@ scoreRouter.post("/", authJwt, requireActiveSubscription, async (req, res, next)
     await client.query("commit");
     return res.status(201).json({ scores: latest.rows });
   } catch (err) {
-    await client.query("rollback");
+    if (client) await client.query("rollback");
     return next(err);
   } finally {
     if (client) client.release();

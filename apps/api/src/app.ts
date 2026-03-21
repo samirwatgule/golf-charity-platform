@@ -18,6 +18,7 @@ app.use(cors({ origin: env.FRONTEND_URL }));
 app.post("/api/v1/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
 app.use(express.json());
 
+app.get("/", (_req, res) => res.json({ message: "Fairway Fund API is running. Access the frontend app at port 5173" }));
 app.get("/api/v1/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
