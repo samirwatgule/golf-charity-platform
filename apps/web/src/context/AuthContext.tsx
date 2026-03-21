@@ -57,10 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiClient.post("/auth/login", { email, password });
       setAccessToken(res.data.tokens.accessToken);
       persistUser(res.data.user);
-    } catch {
-      // Fallback to demo mode if backend is not available
-      const demoUser: User = { id: "demo-user-1", email, role: "USER", fullName: "Demo User" };
-      persistUser(demoUser);
+    } catch (err: any) {
+      // Re-throw the error so UI components can display it
+      throw new Error(err.response?.data?.message || "Login failed");
     }
   }, [persistUser]);
 
@@ -69,9 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiClient.post("/auth/register", data);
       setAccessToken(res.data.tokens.accessToken);
       persistUser(res.data.user);
-    } catch {
-      const demoUser: User = { id: "demo-user-1", email: data.email, role: "USER", fullName: data.fullName };
-      persistUser(demoUser);
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || "Registration failed");
     }
   }, [persistUser]);
 
