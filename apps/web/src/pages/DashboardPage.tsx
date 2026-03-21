@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { apiClient } from "../lib/apiClient";
 import {
   MOCK_SCORES,
   MOCK_SUBSCRIPTION,
@@ -52,6 +53,21 @@ export function DashboardPage() {
   const [selectedCharity, setSelectedCharity] = useState(MOCK_CHARITIES[0].id);
   const [donationPercent, setDonationPercent] = useState(10);
   const [showScoreSuccess, setShowScoreSuccess] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async () => {
+    setIsSubscribing(true);
+    try {
+      const res = await apiClient.post("/subscriptions/create-checkout-session");
+      if (res.data?.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (error) {
+      alert("Payment gateway is currently offline or in Demo Mode.");
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   if (!isAuthenticated) {
     return (
@@ -104,6 +120,16 @@ export function DashboardPage() {
           <p className="text-xs text-brand-slate mt-1">
             Renews {new Date(MOCK_SUBSCRIPTION.current_period_end).toLocaleDateString()}
           </p>
+          
+          {MOCK_SUBSCRIPTION.status !== "ACTIVE" && (
+            <button
+              onClick={handleSubscribe}
+              disabled={isSubscribing}
+              className="mt-4 w-full py-2.5 rounded-xl bg-gradient-to-r from-brand-deep to-brand-coral text-white font-bold text-sm hover:shadow-lg transition-all animate-pulse-glow"
+            >
+              {isSubscribing ? "Redirecting..." : "Subscribe Now"}
+            </button>
+          )}
         </div>
 
         {/* Scores */}

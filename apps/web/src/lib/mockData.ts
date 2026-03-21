@@ -19,7 +19,7 @@ export const MOCK_SCORES = [
 
 export const MOCK_SUBSCRIPTION = {
   plan_interval: "MONTHLY",
-  status: "ACTIVE",
+  status: "EXPIRED",
   current_period_start: "2026-03-01T00:00:00Z",
   current_period_end: "2026-04-01T00:00:00Z"
 };
