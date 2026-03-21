@@ -126,7 +126,7 @@ export function DashboardPage() {
 
     setIsSubscribing(true);
     try {
-      const res = await apiClient.post("/subscriptions/checkout-session", { priceId: "YOUR_PRICE_ID_HERE" });
+      const res = await apiClient.post("/subscriptions/checkout-session", { priceId: "price_1TDN3i1nvMCdnZQupHEB7aVB" });
       if (res.data?.url) {
         window.location.href = res.data.url;
       }
