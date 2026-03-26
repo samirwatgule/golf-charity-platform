@@ -16,7 +16,6 @@ type AuthState = {
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
-  setDemoUser: (role: "USER" | "ADMIN") => void;
 };
 
 type RegisterData = {
@@ -78,18 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistUser(null);
   }, [persistUser]);
 
-  const setDemoUser = useCallback((role: "USER" | "ADMIN") => {
-    const demo: User = {
-      id: role === "ADMIN" ? "demo-admin-1" : "demo-user-1",
-      email: role === "ADMIN" ? "admin@fairwayfund.com" : "player@fairwayfund.com",
-      role,
-      fullName: role === "ADMIN" ? "Admin User" : "Demo Player"
-    };
-    persistUser(demo);
-  }, [persistUser]);
+
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, logout, setDemoUser }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated: !!user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
-import { MOCK_CHARITIES, IMPACT_STATS } from "../lib/mockData";
+import { useState, useEffect } from "react";
+import { apiClient } from "../lib/apiClient";
 import { useAuth } from "../context/AuthContext";
+
+const IMPACT_STATS = {
+  totalRaised: "₹23.4L",
+  livesImpacted: "12,500+",
+  treesPlanted: "8,200",
+  mealsServed: "45,000"
+};
 
 /* ── Reusable icon components ── */
 const IconSubscribe = () => (
@@ -36,6 +44,13 @@ function AnimatedCounter({ label, value, sub }: { label: string; value: string; 
 
 export function LandingPage() {
   const { isAuthenticated } = useAuth();
+  const [charities, setCharities] = useState<any[]>([]);
+
+  useEffect(() => {
+    apiClient.get("/charities").then((res) => {
+      setCharities(res.data?.charities?.slice(0, 3) || []);
+    }).catch(() => setCharities([]));
+  }, []);
 
   return (
     <main className="overflow-hidden">
@@ -230,7 +245,7 @@ export function LandingPage() {
             <h2 className="text-3xl font-black text-brand-deep md:text-4xl">Charities creating real impact</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
-            {MOCK_CHARITIES.slice(0, 3).map((charity, i) => (
+            {charities.map((charity, i) => (
               <div
                 key={charity.id}
                 className={`glass rounded-2xl overflow-hidden card-hover animate-fade-in-up stagger-${i + 1}`}

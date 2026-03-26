@@ -8,7 +8,7 @@ import { CharitiesPage } from "./pages/CharitiesPage";
 import { AuthPage } from "./pages/AuthPage";
 
 function Navbar() {
-  const { user, isAuthenticated, logout, setDemoUser } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -40,27 +40,12 @@ function Navbar() {
           {isAuthenticated && (
             <Link to="/dashboard" className={navLinkClass("/dashboard")}>Dashboard</Link>
           )}
-          {user?.role === "ADMIN" && (
-            <Link to="/admin" className={navLinkClass("/admin")}>Admin</Link>
-          )}
         </nav>
 
         {/* Right side */}
         <div className="hidden items-center gap-3 md:flex">
           {!isAuthenticated ? (
             <>
-              <button
-                onClick={() => setDemoUser("USER")}
-                className="text-xs font-medium text-brand-leaf hover:text-brand-deep transition-colors"
-              >
-                Demo User
-              </button>
-              <button
-                onClick={() => setDemoUser("ADMIN")}
-                className="text-xs font-medium text-brand-gold hover:text-brand-deep transition-colors"
-              >
-                Demo Admin
-              </button>
               <Link to="/auth" className="btn-primary !px-5 !py-2 text-sm">
                 Get Started
               </Link>
@@ -105,13 +90,8 @@ function Navbar() {
             {isAuthenticated && (
               <Link to="/dashboard" className={navLinkClass("/dashboard")} onClick={() => setMobileOpen(false)}>Dashboard</Link>
             )}
-            {user?.role === "ADMIN" && (
-              <Link to="/admin" className={navLinkClass("/admin")} onClick={() => setMobileOpen(false)}>Admin</Link>
-            )}
             {!isAuthenticated ? (
               <div className="flex gap-2 mt-2">
-                <button onClick={() => { setDemoUser("USER"); setMobileOpen(false); }} className="text-xs font-medium text-brand-leaf">Demo User</button>
-                <button onClick={() => { setDemoUser("ADMIN"); setMobileOpen(false); }} className="text-xs font-medium text-brand-gold">Demo Admin</button>
                 <Link to="/auth" className="btn-primary !px-4 !py-2 text-xs" onClick={() => setMobileOpen(false)}>Get Started</Link>
               </div>
             ) : (
@@ -173,9 +153,12 @@ function Footer() {
 }
 
 export function App() {
+  const location = useLocation();
+  const isAdmin = location.pathname === "/admin";
+
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      {!isAdmin && <Navbar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
@@ -183,7 +166,7 @@ export function App() {
         <Route path="/charities" element={<CharitiesPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
-      <Footer />
+      {!isAdmin && <Footer />}
     </div>
   );
 }

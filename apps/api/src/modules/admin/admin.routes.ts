@@ -183,3 +183,36 @@ adminRouter.get("/analytics/overview", async (_req, res, next) => {
     return next(err);
   }
 });
+
+adminRouter.get("/draws", async (_req, res, next) => {
+  try {
+    const result = await db.query(
+      `select d.id, d.month_key, d.mode, d.status, d.draw_numbers, d.published_at,
+              pp.prize_pool_amount, pp.jackpot_rollover_out
+       from draws d
+       left join prize_pools pp on pp.draw_id = d.id
+       order by d.created_at desc
+       limit 50`
+    );
+    return res.json({ draws: result.rows });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+adminRouter.get("/winners", async (_req, res, next) => {
+  try {
+    const result = await db.query(
+      `select w.id, w.matched_count, w.gross_amount, w.proof_url, w.verification_status, w.payment_status, 
+              u.full_name as user_name, u.email as user_email, d.month_key
+       from winners w
+       join users u on u.id = w.user_id
+       join draws d on d.id = w.draw_id
+       order by w.created_at desc
+       limit 100`
+    );
+    return res.json({ winners: result.rows });
+  } catch (err) {
+    return next(err);
+  }
+});
