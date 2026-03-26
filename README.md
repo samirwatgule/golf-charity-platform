@@ -73,6 +73,12 @@ FRONTEND_URL="http://localhost:5173"
 ### 3. Database Initialization
 Execute the SQL commands found in `apps/api/schema.sql` against your PostgreSQL database to create all required tables (Users, Subscriptions, Scores, Draws, Winners, Charities) and seed initial data.
 
+Once the database is set up, seed the default Admin user by running:
+```bash
+cd apps/api
+npx tsx src/scripts/seed_admin.ts
+```
+
 ### 4. Running the Development Server
 Since this is a monorepo, you can start both the Frontend and Backend concurrently from the root directory:
 ```bash
@@ -83,8 +89,14 @@ npm run dev
 
 ---
 
-## 🎨 Frontend "Demo Mode"
-The frontend has been built with a robust **Mock Data Layer**. Even if your backend server or database is offline, the React app will gracefully fall back to `Demo Mode`. You can log in as a "Demo User" or "Demo Admin" to navigate and test the UI, animations, and responsive layouts seamlessly.
+## 🔑 Admin Access
+The platform includes a fully functional, secured Admin Control Panel to manage users, process monthly draws, verify winners, and add/deactivate supported charities.
+
+- **URL**: `http://localhost:5173/admin`
+- **Default Admin ID**: `admin`
+- **Default Password**: `Admin@123`
+
+*(Note: The platform is fully integrated with the PostgreSQL database and Node.js API. All former "Demo Mode" and mock data features have been completely removed for production readiness.)*
 
 ## 🛡 System Design Highlights
 - **Strict FIFO Scores**: Implemented within PostgreSQL block transactions to ensure a player only ever has their latest 5 scores active in the lottery.
