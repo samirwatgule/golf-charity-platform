@@ -310,7 +310,7 @@ export function AdminPage() {
   //  ADMIN PANEL
   // ═══════════════════════════════════════════
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 bg-mesh min-h-screen">
+    <main className="mx-auto w-full max-w-7xl px-6 py-10 bg-mesh min-h-screen">
       {/* Header */}
       <div className="mb-8 animate-fade-in-up flex items-center justify-between">
         <div>
